@@ -1,5 +1,7 @@
 import os.path
 
+from itertools import chain
+
 from . import builtin
 from .packages import system_executable
 from ..build_inputs import Directory, Edge, File, Phony, objectify, sourcify
@@ -76,7 +78,8 @@ class Link(Edge):
                  extra_deps=None):
         # XXX: Try to detect if a string refers to a shared lib?
         libs = [sourcify(i, Library, StaticLibrary) for i in iterate(libs)]
-
+        if libs:
+            extra_deps = list(chain(iterate(extra_deps), libs))
         self.files = builtins['object_files'](
             files, include, system_include, packages, compile_options, lang
         )
