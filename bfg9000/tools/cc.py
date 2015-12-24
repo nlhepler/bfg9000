@@ -1,10 +1,12 @@
 import os.path
 import re
 
+from itertools import chain
+
 from .utils import library_macro
 from ..file_types import *
 from ..iterutils import iterate, uniques
-from ..path import Root
+from ..path import Path, Root
 
 class CcCompiler(object):
     def __init__(self, env, name, command, cflags):
@@ -115,12 +117,23 @@ class CcLinker(object):
         return ['-shared', '-fPIC'] if self.mode == 'shared_library' else []
 
     def lib_dirs(self, libraries):
-        def get_dir(lib):
-            return lib.path.parent() if isinstance(lib, Library) else lib
-        dirs = uniques(get_dir(i) for i in iterate(libraries))
-        return ['-L' + i for i in dirs]
+        def get_term(lib):
+            if isinstance(lib, SharedLibrary):
+                return lib.path.parent()
+            return lib
+        def get_arg(term):
+            if isinstance(term, Path):
+                return ['-L' + term]
+            elif isinstance(term, WholeArchive):
+                return self.platform.whole_archive(term.path)
+            else:
+                return [term.path]
+        terms = uniques(get_term(i) for i in iterate(libraries))
+        return list(chain(*(get_arg(i) for i in terms)))
 
     def link_lib(self, library):
+        if not isinstance(library, SharedLibrary):
+            return []
         lib_name = library.link.path.basename()
         m = self._lib_re.match(lib_name)
         if not m:

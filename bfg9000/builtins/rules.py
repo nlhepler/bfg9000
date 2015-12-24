@@ -83,10 +83,16 @@ class Link(Edge):
         self.files = builtins['object_files'](
             files, include, system_include, packages, compile_options, lang
         )
-        if len(self.files) == 0:
-            raise ValueError('need at least one source file')
+        if len(self.files) + sum(1 for i in libs if isinstance(i, WholeArchive)) == 0:
+            raise ValueError('need at least one source file or whole archive')
 
-        self.builder = env.linker((i.lang for i in self.files), mode)
+        def langs():
+            if lang:
+                yield lang
+            for i in self.files:
+                yield i.lang
+
+        self.builder = env.linker(langs(), mode)
         self.libs = sum((i.libraries for i in iterate(packages)), libs)
 
         lib_dirs = (self.builder.lib_dirs(i.lib_dirs)
@@ -133,6 +139,10 @@ def header(name):
 @builtin
 def header_directory(directory):
     return HeaderDirectory(directory, root=Root.srcdir)
+
+@builtin
+def whole_archive(lib):
+    return WholeArchive(lib)
 
 @builtin.globals('build_inputs', 'env')
 def object_file(build, env, name=None, file=None, *args, **kwargs):

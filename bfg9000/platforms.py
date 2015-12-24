@@ -81,10 +81,18 @@ class LinuxPlatform(PosixPlatform):
             pass
         return PosixPlatform.lib_dirs(self)
 
+    @staticmethod
+    def whole_archive(path):
+        return ['-Wl,--whole-archive', path, '-Wl,--no-whole-archive']
+
 class DarwinPlatform(PosixPlatform):
     @property
     def shared_library_ext(self):
         return '.dylib'
+
+    @staticmethod
+    def whole_archive(path):
+        return ['-Wl,-force_load', path]
 
 class WindowsPlatform(Platform):
     @property
