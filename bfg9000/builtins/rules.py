@@ -41,14 +41,17 @@ class ObjectFiles(list):
 
 class Compile(Edge):
     def __init__(self, build, env, name, file, include=None,
-                 packages=None, options=None, lang=None, extra_deps=None):
+                 system_include=None, packages=None, options=None, lang=None,
+                 extra_deps=None):
         if name is None:
             name = os.path.splitext(file)[0]
         include = [sourcify(i, HeaderDirectory) for i in iterate(include)]
+        system_include = [sourcify(i, HeaderDirectory) for i in iterate(system_include)]
 
         self.file = sourcify(file, SourceFile, lang=lang)
         self.builder = env.compiler(self.file.lang)
         self.include = sum((i.includes for i in iterate(packages)), include)
+        self.system_include = sum((i.system_includes for i in iterate(packages)), system_include)
         self.options = pshell.listify(options)
         self.internal_options = []
 
@@ -68,13 +71,14 @@ class Link(Edge):
         return os.path.join(head, cls.__prefixes[mode] + tail)
 
     def __init__(self, builtins, build, env, mode, name, files, include=None,
-                 libs=None, packages=None, compile_options=None,
-                 link_options=None, lang=None, extra_deps=None):
+                 system_include=None, libs=None, packages=None,
+                 compile_options=None, link_options=None, lang=None,
+                 extra_deps=None):
         # XXX: Try to detect if a string refers to a shared lib?
         libs = [sourcify(i, Library, StaticLibrary) for i in iterate(libs)]
 
         self.files = builtins['object_files'](
-            files, include, packages, compile_options, lang
+            files, include, system_include, packages, compile_options, lang
         )
         if len(self.files) == 0:
             raise ValueError('need at least one source file')

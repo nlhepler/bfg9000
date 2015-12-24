@@ -34,6 +34,9 @@ class CcCompiler(object):
     def include_dir(self, directory):
         return ['-I' + directory.path]
 
+    def system_include_dir(self, directory):
+        return ['-isystem', directory.path]
+
     def link_args(self, name, mode):
         if mode == 'executable':
             return []

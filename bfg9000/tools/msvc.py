@@ -38,6 +38,9 @@ class MsvcCompiler(object):
     def include_dir(self, directory):
         return ['/I' + directory.path]
 
+    def system_include_dir(self, directory):
+        return self.include_directory(directory)
+
     def link_args(self, name, mode):
         if mode == 'executable':
             return []

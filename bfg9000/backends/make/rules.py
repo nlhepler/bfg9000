@@ -201,6 +201,9 @@ def emit_object_file(rule, build_inputs, buildfile, env):
     cflags_value.extend(chain.from_iterable(
         compiler.include_dir(i) for i in rule.include
     ))
+    cflags_value.extend(chain.from_iterable(
+        compiler.system_include_dir(i) for i in rule.system_include
+    ))
     cflags_value.extend(chain(rule.internal_options, rule.options))
     if cflags_value:
         variables[cflags] = [global_cflags] + cflags_value

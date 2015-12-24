@@ -12,8 +12,10 @@ from ..iterutils import iterate, listify
 from ..platforms import which
 
 class Package(object):
-    def __init__(self, includes=None, libraries=None, lib_dirs=None):
+    def __init__(self, includes=None, system_includes=None, libraries=None,
+                 lib_dirs=None):
         self.includes = includes or []
+        self.system_includes = system_includes or []
         self.libraries = libraries or []
         self.lib_dirs = lib_dirs or []
 
@@ -34,9 +36,9 @@ def system_package(env, name):
     return Package([], [_find_library(env, name, env.lib_dirs)])
 
 class BoostPackage(Package):
-    def __init__(self, includes=None, libraries=None, lib_dirs=None,
-                 version=None):
-        Package.__init__(self, includes, libraries, lib_dirs)
+    def __init__(self, includes=None, system_includes=None, libraries=None,
+                 lib_dirs=None, version=None):
+        Package.__init__(self, includes, system_includes, libraries, lib_dirs)
         self.version = version
 
 def _boost_version(headers, required_version=None):
@@ -93,13 +95,13 @@ def boost_package(env, name=None, version=None):
         if not env.linker('c++').auto_link:
             # XXX: Don't require auto-link.
             raise ValueError('Boost on Windows requires auto-link')
-        return BoostPackage(headers, lib_dirs=listify(lib_var),
+        return BoostPackage([], headers, lib_dirs=listify(lib_var),
                             version=boost_version)
     else:
         dirs = [lib_var] if lib_var else env.platform.lib_dirs
         libraries = [_find_library(env, 'boost_' + i, dirs)
                      for i in iterate(name)]
-        return BoostPackage(headers, libraries=libraries, version=boost_version)
+        return BoostPackage([], headers, libraries=libraries, version=boost_version)
 
 @builtin.globals('env')
 def system_executable(env, name):
