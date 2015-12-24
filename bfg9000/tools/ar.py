@@ -23,6 +23,9 @@ class ArLinker(object):
         result.extend(iterutils.iterate(input))
         return result
 
+    def lib_dirs(self, libraries):
+        return []
+
     def output_file(self, name):
         head, tail = os.path.split(name)
         path = os.path.join(head, 'lib' + tail + '.a')
